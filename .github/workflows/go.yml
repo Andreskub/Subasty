@@ -17,8 +17,8 @@ jobs:
         go-version: 1.18
 
     - name: Build Server
-      run: go build -v ./server_main.go
+      run: go build -v ./server.go
       
     - name: Build Client
-      run: go build -v ./client_main.go  
+      run: go build -v ./client.go  
     
