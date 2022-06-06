@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	token = "OTgzNDk5MDMwNTIyOTAwNTIw.GNIN4u.uBh-QOjfZZASbo-pMh2ZayslszWJcVi6RSHZrM"
+	token = ""
 )
 
 func ConnectToDiscord() {
