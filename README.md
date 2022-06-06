@@ -11,11 +11,11 @@ Trabajo Integrador de la materia Teoría Del Lenguaje de la Facultad de Ingenier
 
 ## **Aplicación**
 
-Para correr el Cliente y Servidor utilizar las siguientes lineas:
+Para correr el programa utilizar las siguientes lineas:
 
 ```
-$ go run server.go 8080
+$ go run .
 ```
 ```
-$ go run client.go localhost:8080
+$ go run *.go
 ```
