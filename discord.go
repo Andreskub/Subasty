@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	token      = "OTgzNDk5MDMwNTIyOTAwNTIw.GylizJ.2OntlNAB2o47SuaomLWQ83w5ziw2RXrxkdLYiI"
+	token      = ""
 	auctions   map[string]*Auction
 	botActions = []string{
 		"!hello to say hi",
