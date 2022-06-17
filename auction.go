@@ -1,34 +1,40 @@
 package main
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"errors"
+	"strconv"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 type Auction struct {
-	id string
+	id            string
 	initialAmount int
 	currentAmount int
-	productName string
+	productName   string
 }
 
-func newAuction(productName string, initialAmount int, s *discordgo.Session) (*Auction, error){
+func newAuction(productName string, initialAmount int, s *discordgo.Session) (*Auction, error) {
 	auctionName := "Auction - " + productName
-	auctionChannel, err := s.GuildChannelCreate(s.State.Guilds[0].ID, auctionName, discordgo.ChannelTypeGuildText)
-	
+	//auctionChannel, err := s.GuildChannelCreate(s.State.Guilds[0].ID, auctionName, discordgo.ChannelTypeGuildText)
+
 	return &Auction{
-		id: auctionChannel.ID,
+		id:            auctionName, //auctionChannel.ID,
 		initialAmount: initialAmount,
 		currentAmount: initialAmount,
-		productName: productName,
-	}, err
+		productName:   productName,
+	}, nil //err
 }
 
-func (a *Auction) bid(amount int)(error){
+func (a *Auction) bid(amount int) error {
 
 	if amount <= a.currentAmount {
-		return errors.New("Amount lower than current")
+		return errors.New("input amount is lower than current amount")
 	}
 	a.currentAmount = amount
 	return nil
+}
+
+func (a *Auction) showInfo() string {
+	return strconv.Itoa(a.currentAmount)
 }
