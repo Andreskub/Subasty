@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	token      = ""
+	token      = "OTgzNDk5MDMwNTIyOTAwNTIw.GcSBBA.MaCQLrrUSTBPMw7_p_jYCm8-8-KbxB9UQ71BGI"
 	auctions   map[string]*Auction
 	botActions = []string{
 		"!hello to say hi",
@@ -20,6 +20,7 @@ var (
 		"!auction <itemName> <initialAmount> to create a new auction",
 		"!bid <amount> to bid in auction",
 		"!info to show bid information",
+		"!end to end the auction",
 		"!help to show all commands",
 	}
 )
@@ -48,10 +49,10 @@ func ConnectToDiscord() {
 }
 
 func messageControler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// ignore messages from bot himself
-	if m.Author.ID == s.State.User.ID || !strings.HasPrefix(strings.ToLower(m.Content), "!") {
-		return
-	}
+	// ignore messages from bot himself and those not directed to him
+	// if m.Author.ID == s.State.User.ID || !strings.HasPrefix(strings.ToLower(m.Content), "!") {
+	// 	return
+	// }
 
 	switch {
 	case m.Author.ID == s.State.User.ID || !strings.HasPrefix(strings.ToLower(m.Content), "!"):
@@ -84,6 +85,12 @@ func messageControler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case strings.HasPrefix(strings.ToLower(m.Content), "!info"):
 		{
 			go handleInfo(s, m)
+			return
+		}
+	// !end to end the auction
+	case strings.ToLower(m.Content) == "!end":
+		{
+			go handleAuctionEnding(s, m)
 			return
 		}
 	// !help to show all commands
@@ -154,8 +161,8 @@ func handlecreateAuction(s *discordgo.Session, m *discordgo.MessageCreate) {
 	//user := m.Author.Username
 	itemName := splits[1]
 	initialAmount, _ := strconv.Atoi(splits[2])
-
-	auction, err := newAuction(itemName, initialAmount, s)
+	user_id := m.Author.ID
+	auction, err := newAuction(itemName, initialAmount, user_id)
 	if err != nil {
 		s.ChannelMessageSend(m.ChannelID, "Error while creating the Auction")
 		return
@@ -179,10 +186,16 @@ func handleBid(s *discordgo.Session, m *discordgo.MessageCreate) {
 	amount, _ := strconv.Atoi(splits[1])
 
 	auction := auctions[m.ChannelID]
-	err := auction.bid(amount)
+	err := auction.bid(amount, m.Author.Username)
 	if err != nil {
-		s.ChannelMessageSend(m.ChannelID, "Error: The amount must be greater than the current amount")
-	}
+		if fmt.Sprint(err) == "the auction has already been closed"{
+			message := auction.showInfoEnded()
+			s.ChannelMessageSend(m.ChannelID, message)
+		}
+		if fmt.Sprint(err) == "input amount is lower than current amount"{
+			s.ChannelMessageSend(m.ChannelID, "Error: The amount must be greater than the current amount")
+		}
+	}	
 	fmt.Println(auction)
 	//return
 }
@@ -193,7 +206,31 @@ func handleInfo(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	auction := auctions[m.ChannelID]
-	info := auction.showInfo()
+	info := ""
+	if auction.hasEnded(){
+		info = auction.showInfoEnded()
+	}else{
+		info = auction.showInfo()
+	}
 	s.ChannelMessageSend(m.ChannelID, info)
 	//return
+}
+
+func handleAuctionEnding(s *discordgo.Session, m *discordgo.MessageCreate){
+	if strings.ToLower(m.Content) != "!end"{
+		s.ChannelMessageSend(m.ChannelID, "Error: Wrong use of !end")
+		return
+	}
+	auction := auctions[m.ChannelID]
+	if auction.getCreator() != m.Author.ID{
+		s.ChannelMessageSend(m.ChannelID, "Error: You cannot end this auction because you are not the owner")
+		return
+	}
+	err := auction.end()
+	if err != nil{
+		s.ChannelMessageSend(m.ChannelID, "Error: The actual auction has already been closed")
+		return
+	}
+	info := auction.showInfoEnded()
+	s.ChannelMessageSend(m.ChannelID, info)
 }
